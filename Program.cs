@@ -1,10 +1,11 @@
-﻿using System;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace edu_simple
 {
-
+    // Интерфейсы
     public interface IHasId
     {
         string GetId();
@@ -21,12 +22,12 @@ namespace edu_simple
         void ClearMarks();
     }
 
-   
+    // Аргументы события ошибки
     public class ErrorEventArgs : EventArgs
     {
-        public string Kind;   // тип ошибки
-        public string Text;   // сообщение об ошибке
-
+        public string Kind;
+        public string Text;
+        
         public ErrorEventArgs(string kind, string text)
         {
             Kind = kind;
@@ -34,7 +35,7 @@ namespace edu_simple
         }
     }
 
-
+    // Базовый класс с событием ошибки
     public class ErrorNotifierBase
     {
         public virtual event EventHandler<ErrorEventArgs> ErrorHappened;
@@ -52,6 +53,7 @@ namespace edu_simple
         }
     }
 
+    // Производный класс с переопределением события
     public class ErrorNotifierDerived : ErrorNotifierBase
     {
         private EventHandler<ErrorEventArgs> _backing;
@@ -73,7 +75,7 @@ namespace edu_simple
         }
     }
 
- 
+    // Классы модели
     public class Student : IHasId, IPrintable, IMarkEditable
     {
         public string Id;
@@ -125,6 +127,8 @@ namespace edu_simple
 
         public override string ToString() => $"Институт: {Name}, курсов: {Courses.Count}, предметов: {Subjects.Count}";
     }
+
+    // Класс для демонстрации исключений
     public class ExceptionDemo
     {
         private readonly ErrorNotifierBase _notifier;
@@ -134,12 +138,10 @@ namespace edu_simple
             _notifier = notifier;
         }
 
-        // 1) StackOverflowException
         public void Demo_StackOverflow()
         {
             try
             {
-               
                 throw new StackOverflowException("Симуляция переполнения стека");
             }
             catch (StackOverflowException ex)
@@ -148,14 +150,13 @@ namespace edu_simple
             }
         }
 
-        // 2) ArrayTypeMismatchException
         public void Demo_ArrayTypeMismatch()
         {
             try
             {
                 string[] strArray = new string[5];
                 object[] objArray = strArray;
-                objArray[0] = 123; // Попытка сохранить int в string[]
+                objArray[0] = 123;
             }
             catch (ArrayTypeMismatchException ex)
             {
@@ -163,7 +164,6 @@ namespace edu_simple
             }
         }
 
-        // 3) DivideByZeroException
         public void Demo_DivideByZero()
         {
             try
@@ -178,13 +178,12 @@ namespace edu_simple
             }
         }
 
-        // 4) IndexOutOfRangeException
         public void Demo_IndexOutOfRange()
         {
             try
             {
                 int[] array = new int[3];
-                int value = array[10]; // Выход за границы массива
+                int value = array[10];
             }
             catch (IndexOutOfRangeException ex)
             {
@@ -192,13 +191,12 @@ namespace edu_simple
             }
         }
 
-        // 5) InvalidCastException
         public void Demo_InvalidCast()
         {
             try
             {
                 object obj = "строка";
-                int number = (int)obj; // Неверное приведение типов
+                int number = (int)obj;
             }
             catch (InvalidCastException ex)
             {
@@ -206,12 +204,10 @@ namespace edu_simple
             }
         }
 
-        // 6) OutOfMemoryException
         public void Demo_OutOfMemory()
         {
             try
             {
-                // Симуляция нехватки памяти
                 throw new OutOfMemoryException("Симуляция нехватки памяти");
             }
             catch (OutOfMemoryException ex)
@@ -220,7 +216,6 @@ namespace edu_simple
             }
         }
 
-        // 7) OverflowException
         public void Demo_Overflow()
         {
             try
@@ -228,7 +223,7 @@ namespace edu_simple
                 checked
                 {
                     int max = int.MaxValue;
-                    int overflow = max + 1; 
+                    int overflow = max + 1;
                 }
             }
             catch (OverflowException ex)
@@ -238,12 +233,12 @@ namespace edu_simple
         }
     }
 
-  
+    // Основная программа
     class Program
     {
         static List<Institute> institutes = new List<Institute>();
         static int autoId = 1;
-
+        
         delegate void StudentAction(Student s);
 
         static ErrorNotifierDerived notifier = new ErrorNotifierDerived();
@@ -252,7 +247,6 @@ namespace edu_simple
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            
             notifier.ErrorHappened += (sender, e) =>
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -284,7 +278,7 @@ namespace edu_simple
                     case "8": ListAll(); break;
                     case "9": QueryNoBadMarks(); break;
                     case "10": TestStudentInterfacesWithDelegate(); break;
-                    case "11": DemoAllExceptions(); break; 
+                    case "11": DemoAllExceptions(); break;
                     default: Console.WriteLine("Нет такого пункта.\n"); break;
                 }
             }
@@ -307,134 +301,248 @@ namespace edu_simple
             Console.WriteLine("0) Выход\n");
         }
 
- 
         static Institute PickInstitute()
         {
-            if (institutes.Count == 0) { Console.WriteLine("Институтов нет.\n"); return null; }
-            for (int i = 0; i < institutes.Count; i++) Console.WriteLine($"{i + 1}. {institutes[i].Name}");
+            if (institutes.Count == 0) { 
+                Console.WriteLine("Институтов нет.\n"); 
+                return null; 
+            }
+            
+            for (int i = 0; i < institutes.Count; i++) {
+                Console.WriteLine($"{i + 1}. {institutes[i].Name}");
+            }
+            
             Console.Write("Номер института: ");
-            if (int.TryParse(Console.ReadLine(), out int iidx) && iidx >= 1 && iidx <= institutes.Count)
-                return institutes[iidx - 1];
-            Console.WriteLine("Неверно.\n"); return null;
+            if (int.TryParse(Console.ReadLine(), out int index)) {
+                if (index >= 1 && index <= institutes.Count) {
+                    return institutes[index - 1];
+                }
+            }
+            
+            Console.WriteLine("Неверный номер.\n");
+            return null;
         }
 
         static Course PickCourse(Institute inst)
         {
-            if (inst.Courses.Count == 0) { Console.WriteLine("Курсов нет.\n"); return null; }
-            for (int i = 0; i < inst.Courses.Count; i++) Console.WriteLine($"{i + 1}. Курс {inst.Courses[i].Number}");
+            if (inst.Courses.Count == 0) { 
+                Console.WriteLine("Курсов нет.\n"); 
+                return null; 
+            }
+            
+            for (int i = 0; i < inst.Courses.Count; i++) {
+                Console.WriteLine($"{i + 1}. Курс {inst.Courses[i].Number}");
+            }
+            
             Console.Write("Номер курса: ");
-            if (int.TryParse(Console.ReadLine(), out int iidx) && iidx >= 1 && iidx <= inst.Courses.Count)
-                return inst.Courses[iidx - 1];
-            Console.WriteLine("Неверно.\n"); return null;
+            if (int.TryParse(Console.ReadLine(), out int index)) {
+                if (index >= 1 && index <= inst.Courses.Count) {
+                    return inst.Courses[index - 1];
+                }
+            }
+            
+            Console.WriteLine("Неверный номер.\n");
+            return null;
         }
 
         static Group PickGroup(Course course)
         {
-            if (course.Groups.Count == 0) { Console.WriteLine("Групп нет.\n"); return null; }
-            for (int i = 0; i < course.Groups.Count; i++) Console.WriteLine($"{i + 1}. {course.Groups[i].Name}");
+            if (course.Groups.Count == 0) { 
+                Console.WriteLine("Групп нет.\n"); 
+                return null; 
+            }
+            
+            for (int i = 0; i < course.Groups.Count; i++) {
+                Console.WriteLine($"{i + 1}. {course.Groups[i].Name}");
+            }
+            
             Console.Write("Номер группы: ");
-            if (int.TryParse(Console.ReadLine(), out int iidx) && iidx >= 1 && iidx <= course.Groups.Count)
-                return course.Groups[iidx - 1];
-            Console.WriteLine("Неверно.\n"); return null;
+            if (int.TryParse(Console.ReadLine(), out int index)) {
+                if (index >= 1 && index <= course.Groups.Count) {
+                    return course.Groups[index - 1];
+                }
+            }
+            
+            Console.WriteLine("Неверный номер.\n");
+            return null;
         }
 
         static Student PickStudent(Group group)
         {
-            if (group.Students.Count == 0) { Console.WriteLine("Студентов нет.\n"); return null; }
-            for (int i = 0; i < group.Students.Count; i++) Console.WriteLine($"{i + 1}. {group.Students[i]}");
+            if (group.Students.Count == 0) { 
+                Console.WriteLine("Студентов нет.\n"); 
+                return null; 
+            }
+            
+            for (int i = 0; i < group.Students.Count; i++) {
+                Console.WriteLine($"{i + 1}. {group.Students[i]}");
+            }
+            
             Console.Write("Номер студента: ");
-            if (int.TryParse(Console.ReadLine(), out int iidx) && iidx >= 1 && iidx <= group.Students.Count)
-                return group.Students[iidx - 1];
-            Console.WriteLine("Неверно.\n"); return null;
+            if (int.TryParse(Console.ReadLine(), out int index)) {
+                if (index >= 1 && index <= group.Students.Count) {
+                    return group.Students[index - 1];
+                }
+            }
+            
+            Console.WriteLine("Неверный номер.\n");
+            return null;
         }
 
-   
         static void AddInstitute()
         {
             Console.Write("Название: ");
             var name = Console.ReadLine()?.Trim();
-            if (string.IsNullOrWhiteSpace(name)) { Console.WriteLine("Пусто.\n"); return; }
+            if (string.IsNullOrWhiteSpace(name)) { 
+                Console.WriteLine("Пусто.\n"); 
+                return; 
+            }
             institutes.Add(new Institute(name));
             Console.WriteLine("Добавлено.\n");
         }
 
         static void RenameInstitute()
         {
-            var inst = PickInstitute(); if (inst == null) return;
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
             Console.Write("Новое название: ");
             var name = Console.ReadLine()?.Trim();
-            if (string.IsNullOrWhiteSpace(name)) { Console.WriteLine("Пусто.\n"); return; }
-            inst.Name = name; Console.WriteLine("Ок.\n");
+            if (string.IsNullOrWhiteSpace(name)) { 
+                Console.WriteLine("Пусто.\n"); 
+                return; 
+            }
+            inst.Name = name; 
+            Console.WriteLine("Ок.\n");
         }
 
         static void DeleteInstitute()
         {
-            var inst = PickInstitute(); if (inst == null) return;
-            institutes.Remove(inst); Console.WriteLine("Удалено.\n");
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
+            institutes.Remove(inst); 
+            Console.WriteLine("Удалено.\n");
         }
 
         static void AddSubject()
         {
-            var inst = PickInstitute(); if (inst == null) return;
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
             Console.Write("Название предмета: ");
             var s = Console.ReadLine()?.Trim();
-            if (string.IsNullOrWhiteSpace(s)) { Console.WriteLine("Пусто.\n"); return; }
-            if (!inst.Subjects.Contains(s)) inst.Subjects.Add(s);
+            if (string.IsNullOrWhiteSpace(s)) { 
+                Console.WriteLine("Пусто.\n"); 
+                return; 
+            }
+            if (!inst.Subjects.Contains(s)) 
+                inst.Subjects.Add(s);
             Console.WriteLine("Добавлено.\n");
         }
 
         static void AddCourseAndGroup()
         {
-            var inst = PickInstitute(); if (inst == null) return;
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
             Console.Write("Номер курса (1..6): ");
-            if (!int.TryParse(Console.ReadLine(), out int num) || num < 1 || num > 6)
-            { Console.WriteLine("Неверно.\n"); return; }
+            if (!int.TryParse(Console.ReadLine(), out int num) || num < 1 || num > 6) { 
+                Console.WriteLine("Неверно.\n"); 
+                return; 
+            }
+            
             var course = inst.Courses.Find(c => c.Number == num);
-            if (course == null) { course = new Course(num); inst.Courses.Add(course); Console.WriteLine("Курс создан."); }
+            if (course == null) { 
+                course = new Course(num); 
+                inst.Courses.Add(course); 
+                Console.WriteLine("Курс создан."); 
+            }
+            
             Console.Write("Название группы: ");
             var gname = Console.ReadLine()?.Trim();
-            if (string.IsNullOrWhiteSpace(gname)) { Console.WriteLine("Пусто.\n"); return; }
-            if (course.Groups.Exists(g => string.Equals(g.Name, gname, StringComparison.OrdinalIgnoreCase)))
-            { Console.WriteLine("Уже есть.\n"); return; }
+            if (string.IsNullOrWhiteSpace(gname)) { 
+                Console.WriteLine("Пусто.\n"); 
+                return; 
+            }
+            
+            if (course.Groups.Exists(g => string.Equals(g.Name, gname, StringComparison.OrdinalIgnoreCase))) { 
+                Console.WriteLine("Уже есть.\n"); 
+                return; 
+            }
+            
             course.Groups.Add(new Group(gname));
             Console.WriteLine("Группа добавлена.\n");
         }
 
         static void AddStudent()
         {
-            var inst = PickInstitute(); if (inst == null) return;
-            var course = PickCourse(inst); if (course == null) return;
-            var group = PickGroup(course); if (group == null) return;
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
+            var course = PickCourse(inst); 
+            if (course == null) return;
+            
+            var group = PickGroup(course); 
+            if (group == null) return;
+            
             var id = $"S{autoId++:000}";
             Console.Write("ФИО: ");
             var fio = Console.ReadLine()?.Trim();
-            if (string.IsNullOrWhiteSpace(fio)) { Console.WriteLine("Пусто.\n"); return; }
+            if (string.IsNullOrWhiteSpace(fio)) { 
+                Console.WriteLine("Пусто.\n"); 
+                return; 
+            }
+            
             group.Students.Add(new Student(id, fio));
             Console.WriteLine($"Добавлен студент {fio} с ID {id}.\n");
         }
 
         static void PutMark()
         {
-            var inst = PickInstitute(); if (inst == null) return;
-            if (inst.Subjects.Count == 0) { Console.WriteLine("Нет предметов.\n"); return; }
-            var course = PickCourse(inst); if (course == null) return;
-            var group = PickGroup(course); if (group == null) return;
-            var st = PickStudent(group); if (st == null) return;
-            for (int i = 0; i < inst.Subjects.Count; i++) Console.WriteLine($"{i + 1}. {inst.Subjects[i]}");
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
+            if (inst.Subjects.Count == 0) { 
+                Console.WriteLine("Нет предметов.\n"); 
+                return; 
+            }
+            
+            var course = PickCourse(inst); 
+            if (course == null) return;
+            
+            var group = PickGroup(course); 
+            if (group == null) return;
+            
+            var st = PickStudent(group); 
+            if (st == null) return;
+            
+            for (int i = 0; i < inst.Subjects.Count; i++) 
+                Console.WriteLine($"{i + 1}. {inst.Subjects[i]}");
+            
             Console.Write("Номер предмета: ");
-            if (!int.TryParse(Console.ReadLine(), out int sidx) || sidx < 1 || sidx > inst.Subjects.Count)
-            { Console.WriteLine("Неверно.\n"); return; }
+            if (!int.TryParse(Console.ReadLine(), out int sidx) || sidx < 1 || sidx > inst.Subjects.Count) { 
+                Console.WriteLine("Неверно.\n"); 
+                return; 
+            }
+            
             var subj = inst.Subjects[sidx - 1];
             Console.Write("Оценка (2..5): ");
-            if (!int.TryParse(Console.ReadLine(), out int m) || m < 2 || m > 5)
-            { Console.WriteLine("Неверно.\n"); return; }
+            if (!int.TryParse(Console.ReadLine(), out int m) || m < 2 || m > 5) { 
+                Console.WriteLine("Неверно.\n"); 
+                return; 
+            }
+            
             st.PutMark(subj, m);
             Console.WriteLine("Сохранено.\n");
         }
 
         static void ListAll()
         {
-            if (institutes.Count == 0) { Console.WriteLine("Данных нет.\n"); return; }
+            if (institutes.Count == 0) { 
+                Console.WriteLine("Данных нет.\n"); 
+                return; 
+            }
 
             foreach (var inst in institutes)
             {
@@ -461,7 +569,7 @@ namespace edu_simple
                             if (s.Marks.Count > 0)
                             {
                                 Console.Write("        Оценки: ");
-                                int k = 0;
+                                int k = 0; 
                                 foreach (var kv in s.Marks)
                                 {
                                     Console.Write($"{kv.Key}:{kv.Value}");
@@ -476,10 +584,12 @@ namespace edu_simple
             }
         }
 
-       
         static void QueryNoBadMarks()
         {
-            if (institutes.Count == 0) { Console.WriteLine("Нет данных.\n"); return; }
+            if (institutes.Count == 0) { 
+                Console.WriteLine("Нет данных.\n"); 
+                return; 
+            }
 
             List<string> lines = new List<string>();
             lines.Add("Студенты без двоек и троек:");
@@ -507,13 +617,19 @@ namespace edu_simple
             }
         }
 
-        // Тест интерфейсов через делегат
         static void TestStudentInterfacesWithDelegate()
         {
-            var inst = PickInstitute(); if (inst == null) return;
-            var course = PickCourse(inst); if (course == null) return;
-            var group = PickGroup(course); if (group == null) return;
-            var st = PickStudent(group); if (st == null) return;
+            var inst = PickInstitute(); 
+            if (inst == null) return;
+            
+            var course = PickCourse(inst); 
+            if (course == null) return;
+            
+            var group = PickGroup(course); 
+            if (group == nulll) return;
+            
+            var st = PickStudent(group); 
+            if (st == null) return;
 
             StudentAction tests = ActionShowId;
             tests += ActionPrint;
@@ -528,35 +644,38 @@ namespace edu_simple
         }
 
         static void ActionShowId(Student s) => Console.WriteLine("ID студента: " + s.GetId());
+        
         static void ActionPrint(Student s) => s.Print();
+        
         static void ActionPutDemoMark(Student s)
         {
             s.PutMark("Демо", 5);
             Console.WriteLine("Поставлена оценка 5 по предмету 'Демо'");
         }
+        
         static void ActionClearMarks(Student s)
         {
             s.ClearMarks();
             Console.WriteLine("Оценки очищены");
         }
 
-        
         static void DemoAllExceptions()
         {
-            Console.WriteLine(" Демонстрация  7 исключений ");
-
+            Console.WriteLine("=== Демонстрация обработки 7 исключений ===");
+            
             var demo = new ExceptionDemo(notifier);
-
-            demo.Demo_StackOverflow();      // 1
-            demo.Demo_ArrayTypeMismatch();  // 2
-            demo.Demo_DivideByZero();       // 3
-            demo.Demo_IndexOutOfRange();    // 4
-            demo.Demo_InvalidCast();        // 5
-            demo.Demo_OutOfMemory();        // 6
-            demo.Demo_Overflow();           // 7
+            
+            demo.Demo_StackOverflow();
+            demo.Demo_ArrayTypeMismatch();
+            demo.Demo_DivideByZero();
+            demo.Demo_IndexOutOfRange();
+            demo.Demo_InvalidCast();
+            demo.Demo_OutOfMemory();
+            demo.Demo_Overflow();
 
             Console.WriteLine("=== Демонстрация завершена ===\n");
         }
+
         static void Seed()
         {
             var i1 = new Institute("Гос-институт");
@@ -572,8 +691,11 @@ namespace edu_simple
             var s3 = new Student("S003", "Лена Жена");
             s3.Marks["Программирование"] = 3;
             s3.Marks["Математика"] = 4;
-            g1.Students.Add(s1); g1.Students.Add(s2); g1.Students.Add(s3);
-            c1.Groups.Add(g1); i1.Courses.Add(c1);
+            g1.Students.Add(s1); 
+            g1.Students.Add(s2); 
+            g1.Students.Add(s3);
+            c1.Groups.Add(g1); 
+            i1.Courses.Add(c1);
             institutes.Add(i1);
 
             var i2 = new Institute("Какой-то институт");
@@ -582,7 +704,9 @@ namespace edu_simple
             var g2 = new Group("ФИ21");
             var s4 = new Student("S004", "Анечка любовница");
             s4.Marks["Физика"] = 5;
-            g2.Students.Add(s4); c2.Groups.Add(g2); i2.Courses.Add(c2);
+            g2.Students.Add(s4); 
+            c2.Groups.Add(g2); 
+            i2.Courses.Add(c2);
             institutes.Add(i2);
 
             autoId = 5;
